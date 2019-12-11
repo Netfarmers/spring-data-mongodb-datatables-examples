@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Mongo Datatables Example</title>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
+</head>
+
+<body>
+    <h4>Orders</h4>
+    <table id="example" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Enabled</th>
+                <th>Label</th>
+                <th>CreatedAt</th>
+                <th>Product</th>
+            </tr>
+        </thead>
+    </table>
+
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="jquery.spring-friendly.js"></script>
+    <script src="//cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#example').DataTable( {
+                processing: false,
+                serverSide: true,
+                ajax: {
+                    url: "/orders/datatable",
+                    dataSrc: function (data) {
+                        let renderData = new Array();
+
+                        for (let i = 0; i < data.data.length; i++) {
+                            renderData.push({
+                                id: data.data[i].id,
+                                isEnabled: data.data[i].isEnabled,
+                                label: data.data[i].label,
+                                createdAt: data.data[i].createdAt,
+                                product: data.data[i].product.id + "</br>" + data.data[i].product.label + "</br>" + data.data[i].product.isEnabled
+                            });
+                        }
+
+                        return renderData;
+                    }
+                },
+                columns: [
+                    { data: 'id' },
+                    { data: 'isEnabled' },
+                    { data: 'label' },
+                    { data: 'createdAt' },
+                    { data: 'product' },
+                ]
+            } );
+        } );
+    </script>
+</body>
+
+</html>
