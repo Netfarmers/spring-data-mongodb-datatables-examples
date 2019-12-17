@@ -19,6 +19,15 @@
                 <th>Product</th>
             </tr>
         </thead>
+        <tfoot>
+            <tr>
+                <th>Id</th>
+                <th>Enabled</th>
+                <th>Label</th>
+                <th>CreatedAt</th>
+                <th>Product</th>
+            </tr>
+        </tfoot>
     </table>
 
     
@@ -28,7 +37,13 @@
 
     <script type="text/javascript">
         $(document).ready(function() {
-            $('#example').DataTable( {
+
+            $('#example tfoot th').each( function () {
+                var title = $(this).text();
+                $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+            } );
+
+            var table = $('#example').DataTable( {
                 processing: false,
                 serverSide: true,
                 ajax: {
@@ -56,6 +71,18 @@
                     { data: 'createdAt' },
                     { data: 'product' },
                 ]
+            } );
+
+            table.columns().every( function () {
+                var that = this;
+
+                $( 'input', this.footer() ).on( 'keyup change clear', function () {
+                    if ( that.search() !== this.value ) {
+                        that
+                            .search( this.value )
+                            .draw();
+                    }
+                } );
             } );
         } );
     </script>
