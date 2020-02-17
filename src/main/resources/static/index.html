@@ -57,7 +57,7 @@
                                 isEnabled: data.data[i].isEnabled,
                                 label: data.data[i].label,
                                 createdAt: data.data[i].createdAt,
-                                product: data.data[i].product.id + "</br>" + data.data[i].product.label + "</br>" + data.data[i].product.isEnabled
+                                product: data.data[i].product ? data.data[i].product.label + "</br>" + data.data[i].product.isEnabled : null
                             });
                         }
 

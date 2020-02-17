@@ -37,7 +37,7 @@ public class OrderController {
 
             for (int i = 1; i <= 100; i++) {
                 Product p = new Product();
-                p.setId(i);
+                p.setId(i + 1000);
                 p.setLabel("Product " + i);
                 p.setEnabled(i % 2 == 0);
                 p.setCreatedAt(LocalDateTime.now());
@@ -50,11 +50,20 @@ public class OrderController {
 
             for (int i = 1; i <= 100; i++) {
                 Order o = new Order();
-                o.setId(i);
+                o.setId(i + 1000);
                 o.setLabel("Order " + i);
                 o.setEnabled(i % 2 == 1);
                 o.setCreatedAt(LocalDateTime.now());
                 o.setProduct(products.get(i - 1));
+                orders.add(o);
+            }
+
+            for (int i = 2000; i <= 2100; i++) {
+                Order o = new Order();
+                o.setId(i);
+                o.setLabel("Order " + i);
+                o.setEnabled(i % 2 == 1);
+                o.setCreatedAt(LocalDateTime.now());
                 orders.add(o);
             }
 
@@ -67,20 +76,20 @@ public class OrderController {
     @JsonView(DataTablesOutput.View.class)
     public DataTablesOutput<Order> getOrders(@Valid DataTablesInput input) {
 
-        input.getColumns().stream().forEach(column -> {
-            if (column.getData().equals("product")) {
-                column.setReference(true);
-                column.setReferenceOrderColumn("label");
-                column.setReferenceCollection("product");
+        input.getColumn("product").ifPresent(column -> {
+            column.setReference(true);
+            column.setReferenceOrderColumn("label");
+            column.setReferenceCollection("product");
 
-                List<String> productRefColumns = new ArrayList<>();
-                productRefColumns.add("label");
-                productRefColumns.add("isEnabled");
-                productRefColumns.add("createdAt");
-                column.setReferenceColumns(productRefColumns);
-            }
+            List<String> productRefColumns = new ArrayList<>();
+            productRefColumns.add("label");
+            productRefColumns.add("isEnabled");
+            productRefColumns.add("createdAt");
+            column.setReferenceColumns(productRefColumns);
         });
 
+        input.getColumn("id").ifPresent(column -> column.setSearchType(DataTablesInput.Column.SearchType.Integer));
+        input.getColumn("isEnabled").ifPresent(column -> column.setSearchType(DataTablesInput.Column.SearchType.Boolean));
         return orderRepository.findAll(input);
     }
 }
