@@ -3,8 +3,10 @@ package com.github.example;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.github.example.model.Order;
 import com.github.example.model.Product;
+import com.github.example.model.User;
 import com.github.example.repository.OrderRepository;
 import com.github.example.repository.ProductRepository;
+import com.github.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.datatables.DataTablesInput;
 import org.springframework.data.mongodb.datatables.DataTablesOutput;
@@ -29,6 +31,9 @@ public class OrderController {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @PostConstruct
     public void seed() {
         if(orderRepository.count() == 0) {
@@ -46,6 +51,18 @@ public class OrderController {
 
             productRepository.saveAll(products);
 
+            List<User> users = new ArrayList<>();
+
+            for (int i = 1; i <= 100; i++) {
+                User u = new User();
+                u.setId(i);
+                u.setFirstName("Firstname");
+                u.setLastName("Lastname");
+                users.add(u);
+            }
+
+            userRepository.saveAll(users);
+
             List<Order> orders = new ArrayList<>();
 
             for (int i = 1; i <= 100; i++) {
@@ -55,6 +72,7 @@ public class OrderController {
                 o.setEnabled(i % 2 == 1);
                 o.setCreatedAt(LocalDateTime.now());
                 o.setProduct(products.get(i - 1));
+                o.setUser(users.get(i - 1));
                 orders.add(o);
             }
 
@@ -76,20 +94,21 @@ public class OrderController {
     @JsonView(DataTablesOutput.View.class)
     public DataTablesOutput<Order> getOrders(@Valid DataTablesInput input) {
 
-        input.getColumn("product").ifPresent(column -> {
-            column.setReference(true);
-            column.setReferenceOrderColumn("label");
-            column.setReferenceCollection("product");
+        DataTablesInput.SearchConfiguration searchConfiguration = new DataTablesInput.SearchConfiguration();
+        input.setSearchConfiguration(searchConfiguration);
 
-            List<String> productRefColumns = new ArrayList<>();
-            productRefColumns.add("label");
-            productRefColumns.add("isEnabled");
-            productRefColumns.add("createdAt");
-            column.setReferenceColumns(productRefColumns);
-        });
+        List<String> productRefColumns = new ArrayList<>();
+        productRefColumns.add("label");
+        productRefColumns.add("isEnabled");
+        productRefColumns.add("createdAt");
 
-        input.getColumn("id").ifPresent(column -> column.setSearchType(DataTablesInput.Column.SearchType.Integer));
-        input.getColumn("isEnabled").ifPresent(column -> column.setSearchType(DataTablesInput.Column.SearchType.Boolean));
+        searchConfiguration.addRefConfiguration("product", "product", productRefColumns, "label");
+
+        searchConfiguration.setSearchType("id", DataTablesInput.SearchType.Integer);
+        searchConfiguration.setSearchType("isEnabled", DataTablesInput.SearchType.Boolean);
+
+        searchConfiguration.getExcludedColumns().add("user");
+
         return orderRepository.findAll(input);
     }
 }
